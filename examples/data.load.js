@@ -3,7 +3,7 @@
  */
 
 // first we define our loader
-// it will extend the XHGet loader because we intend
+// it will extend the XHRGet loader because we intend
 // to load data from an xmlhttprequest GET request
 
 twentyc.data.loaders.register(
@@ -15,7 +15,7 @@ twentyc.data.loaders.register(
       config.url = "data.load.example.json"
       
       // then make sure to call the parent ctor
-      this.XHGet(id, config);
+      this.XHRGet(id, config);
     }
   }
 );
@@ -32,7 +32,8 @@ twentyc.data.load("example", {
 });
 
 // doing another load call right after, will work as expected
-// but wont retrieve the data twice
+// but wont retrieve the data twice, event if the first
+// request had not returned yet
 twentyc.data.load("example", {
   callback : function(payload) {
     console.log(payload.id) // "example"
