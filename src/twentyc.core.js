@@ -222,7 +222,7 @@ twentyc.cls.Registry = twentyc.cls.define(
          throw("Class with name '"+name+"' already exists - name must be unique in the Registry");
        }
        if(extend && typeof this._classes[extend] != "function") {
-         throw("Trying to extend from class unknown to this Registry: "+name);
+         throw("Trying to extend from class unknown to this Registry: "+extend);
        }
        if(extend)
          this._classes[name] = twentyc.cls.extend(name, definition, this._classes[extend]);
@@ -395,6 +395,7 @@ twentyc.data = {
         success : function(data) {
           twentyc.data._data[id] = data
           twentyc.data._loading[id] = false;
+          $(twentyc.data).trigger("load", { id:id, data:data} );
           $(twentyc.data).trigger("load-"+id, { id:id, data:data }); 
           $(twentyc.data).off("load-"+id);
         }
@@ -454,8 +455,8 @@ twentyc.data.LoaderRegistry = twentyc.cls.extend(
      */
 
     loader : function(id, config) {
-      if(typeof this._loaders[id] == undefined)
-        throw("Could not find suitable loader for data id "+id);
+      if(!this._loaders[id])
+        throw("Could not find suitable loader for data id "+id+", are you certain it's assigned?");
 
       var loader = this.get(this._loaders[id]);
       return new loader(id, config || {});
