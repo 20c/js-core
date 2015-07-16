@@ -1,3 +1,14 @@
+QUnit.test("twentyc.util.get", function(assert) {
+  
+  var config = { "a" : "b" }
+
+  assert.equal(twentyc.util.get(config, "a"), "b")
+  assert.equal(twentyc.util.get(config, "b"), undefined);
+  assert.equal(twentyc.util.get(config, "c", 123), 123);
+
+});
+
+
 QUnit.test("twentyc.cls.define", function(assert) {
   var classA = twentyc.cls.define(
     "classA",
@@ -141,7 +152,96 @@ QUnit.test("twentyc.cls.override", function(assert) {
   var a = new classA();
 
   assert.equal(a.a(), 100);
-
-
-  
 });
+
+QUnit.test("twentyc.cls.Registry", function(assert) {
+  
+  var reg = new twentyc.cls.Registry();
+  var classBase = reg.register(
+    "base",
+    { 
+      "base" : function(value) { this.value = value },
+      "a" : function() { return this.value }
+    }
+  );
+
+  var classExtended = reg.register(
+    "extended",
+    {
+      "a" : function() { return this.base_a() * 10 }
+    },
+    "base"
+  );
+
+  var b = new classBase(10);
+  var e = new classExtended(10);
+
+  assert.equal(b.a(), 10);
+  assert.equal(e.a(), 100);
+
+});
+
+QUnit.test("twentyc.data.load", function(assert) {
+  
+  twentyc.data.loaders.register(
+    "Test",
+    {
+      Test : function(id, config) {
+        this.XHRGet(id, config);
+        this.config.url = "test.json"
+      }
+    },
+    "XHRGet"
+  );
+
+  twentyc.data.loaders.assign("test", "Test")
+
+  var done = assert.async()
+  var done2 = assert.async()
+
+  var n = 0;
+  var j = 0;
+
+  $(twentyc.data).on("load", function(ev, payload) {
+    j++;
+  });
+
+  twentyc.data.load(
+    "test", 
+    {
+      callback : function(payload) {
+        assert.equal(payload.data.a, 123);
+        n++;
+        done();
+
+      }
+    }
+  );
+
+  twentyc.data.load(
+    "test", 
+    {
+      callback : function(payload) {
+        assert.equal(payload.data.a, 123);
+        n++;
+        done2();
+        var done3 = assert.async();
+
+        twentyc.data.load(
+          "test", 
+          {
+            reload : true,
+            callback : function() {
+              assert.equal(n, 2);
+              assert.equal(j, 2);
+              done3();
+            }
+          }
+        );
+      }
+    }
+  );
+
+
+});
+

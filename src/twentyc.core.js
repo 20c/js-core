@@ -180,4 +180,372 @@ twentyc.cls = {
 
 }
 
+/**
+ * class registry object - allows you to quickly define and extend
+ * similar classes
+ *
+ * @module twentyc
+ * @namespace twentyc.cls
+ * @class Registry
+ * @constructor
+ */
+
+twentyc.cls.Registry = twentyc.cls.define(
+  "Registry",
+  {
+    
+    Registry : function() {
+      
+      /**
+       * holds the classes defined in this registry
+       * @property _classes
+       * @type Object
+       * @private
+       */
+
+      this._classes = {}
+
+    },
+
+    /**
+     * register a new class - look at twentyc.cls.define and twentyc.cls.extend for param
+     * explanation
+     * @method register
+     * @param {String} name class name
+     * @param {Object} definition class definition
+     * @param {String} extend if passed, extend this class from this class (needs to exist in the Registry)
+     * @returns {Function} class ctor of the newly created class
+     */
+
+     register : function(name, definition, extend) {
+       if(this._classes[name] != undefined) {
+         throw("Class with name '"+name+"' already exists - name must be unique in the Registry");
+       }
+       if(extend && typeof this._classes[extend] != "function") {
+         throw("Trying to extend from class unknown to this Registry: "+name);
+       }
+       if(extend)
+         this._classes[name] = twentyc.cls.extend(name, definition, this._classes[extend]);
+       else
+         this._classes[name] = twentyc.cls.define(name, definition);
+       return this._classes[name];
+     },
+
+     /**
+      * get a registered class constructor
+      * @method get
+      * @param {String} name class name
+      * @returns {Function} class ctor of registered class
+      */
+
+     get : function(name) {
+       if(typeof this._classes[name] != "function") 
+         throw("Trying to retrieve class unknown to this Registry: "+name);
+       return this._classes[name];
+     }
+  }
+);
+
+
+/**
+ * utility functions
+ * @module twentyc
+ * @class util
+ * @static
+ */
+
+twentyc.util = {
+  
+  /**
+   * retrieve value from object literal - allows you to pass null or undefined
+   * as the object and will return null if you do
+   *
+   * @method get
+   * @param {Object} obj 
+   * @param {String) key
+   * @param {Mixed} [default] return this if obj is null or key does not exist
+   * @returns {Mixed} value
+   */
+
+  get : function(obj, key, dflt) {
+    if(!obj || obj[key] == undefined)
+      return dflt;
+    return obj[key]
+  }
+
+}
+
+/**
+ * data retrieval, storage and management
+ *
+ * assures that data is only retrieved once even when multiple sources
+ * are requesting it. 
+ *
+ * data is cached locally for quick retrieval afterwards
+ *
+ * @module twentyc
+ * @class data
+ * @static
+ */
+
+twentyc.data = {
+
+  /**
+   * fires everytime a dataset is retrieved from the server - __*__ is
+   * substituted with the data id
+   *
+   * all handlers bound to this event will be removed after its been
+   * triggered - in order to permanently subscribe a load event
+   * subscribe to "load"
+   *
+   * @event load-*
+   * @param {String} id data id
+   * @param {Object} data object literal of retrieved data
+   */
+
+  /**
+   * fires everytime a dataset is retrieved from the server
+   *
+   * @event load
+   * @param {String} id data id
+   * @param {Object} data object literal of retrieved data
+   */
+
+  /**
+   * keeps track of current loading status 
+   * @property _loading
+   * @type Object
+   * @private
+   */
+
+  _loading : {},
+
+  /**
+   * _data storage, keyed by data id
+   * @property data
+   * @type Object
+   * @private
+   */
+
+  _data : {},
+
+  /**
+   * attempts to retrieve and return a data set 
+   *
+   * ##example(s)
+   *
+   * examples/data.load.js
+   *
+   * @method get
+   * @param {String} id data id
+   * @returns {Object} data
+   */
+
+  get : function(id) {
+    return tc.u.get(this._data, id, {})
+  },
+
+  /**
+   * retrieve data from server. at this point this expects a json
+   * string response, with the actual data keyed at the id you provided
+   *
+   * ##example(s)
+   *
+   * examples/data.load.js
+   *
+   * @method load
+   * @param {String} id data identification key
+   * @param {Object} [config] object literal holding options
+   * @param {Function} [config.callback] called when data is available
+   * @param {Boolean} [config.reload] if true data will be re-fetched even if already loaded
+   */
+
+  load : function(id, config) {
+    
+    var callback = tc.u.get(config, "callback");
+
+    // check if data is already loaded
+    if(this._data[id] && !tc.u.get(config, "reload")) {
+      var payload = {id:id, data:this._data[id]}
+      $(this).trigger("load-"+id, payload);
+      if(callback)
+        callback(payload)
+      return;
+    }
+
+    // attach callback to load event
+    if(callback) {
+      $(this).on("load-"+id, function(ev, payload) { callback(payload) }); 
+    }
+
+    // check if data is currently being loaded
+    if(this._loading[id]) {
+      console.log("already loading",id,"skipping additional load")
+      return;
+    }
+
+    // data is not loaded AND not currently loading, attempt to load data
+
+    // in order to load data we need to find a suitable loader for it
+
+    var loader = this.loaders.loader(id, config);
+    this._loading[id] = new Date().getTime()
+    loader.load(
+      {
+        success : function(data) {
+          twentyc.data._data[id] = data
+          twentyc.data._loading[id] = false;
+          $(twentyc.data).trigger("load-"+id, { id:id, data:data }); 
+          $(twentyc.data).off("load-"+id);
+        }
+      }
+    );
+  },
+
+}
+
+/**
+ * create and manage data loaders
+ * @module twentyc
+ * @namesapce twentyc.data
+ * @class loaders
+ * @extends twentyc.cls.Registry
+ * @static
+ */
+
+twentyc.data.LoaderRegistry = twentyc.cls.extend(
+  "LoaderRegistry",
+  {
+    LoaderRegistry : function() {
+      this.Registry();
+
+      /**
+       * holds data id -> loader assignments, keyed by data id
+       * @property _loaders
+       * @type Object
+       * @private
+       */
+
+      this._loaders = {};
+    },
+
+    /**
+     * assign loader to data id
+     * @method assign
+     * @param {String} id data id
+     * @param {String} loaderName name that you registered the loader under
+     */
+    
+    assign : function(id, loaderName) {
+      
+      // this will error if loaderName is not registered
+      var loader = this.get(loaderName);
+      
+      // link loader
+      this._loaders[id] = loaderName;
+
+    },
+
+    /**
+     * get loader linked to data id via __link__
+     * @method loader
+     * @param {String} id data_id
+     * @returns {Object} loader instance of loader
+     */
+
+    loader : function(id, config) {
+      if(typeof this._loaders[id] == undefined)
+        throw("Could not find suitable loader for data id "+id);
+
+      var loader = this.get(this._loaders[id]);
+      return new loader(id, config || {});
+    }
+
+  },
+  twentyc.cls.Registry
+);
+twentyc.data.loaders = new twentyc.data.LoaderRegistry();
+
+/**
+ * any new loader you register should at the very least
+ * extend this loader
+ *
+ * @class Base
+ * @module twentyc
+ * @namespace twentyc.data.loaders.get
+ * @constructor
+ * @param {String} id data id
+ * @param {Object} [config] object literal holding config attributes
+ */
+twentyc.data.loaders.register(
+  "Base",
+  {
+    Base : function(id, config) {
+      this.dataId = id;
+      this.config = config || {};
+    },
+    retrieve : function(data) {
+      var set = tc.u.get(data, this.dataId)
+      if(typeof set == undefined)
+        return {};
+      return set;
+    },
+    load : function() {
+      throw("The load() function needs to be overwritten to do something")
+    }
+  }
+);
+
+
+/**
+ * you may use this loader as a base class for any xhr data retrieval
+ * loaders you define. during the ctor you will need to set the url
+ * attribute on this.config
+ *
+ * @class Base
+ * @module twentyc
+ * @namespace twentyc.data.loaders.get
+ * @constructor
+ * @param {String} id data id
+ * @param {Object} [config] object literal holding config attributes
+ * @param {String} [config.url] url of the request
+ * @param {Object} [config.data] parameters to send 
+ */
+
+twentyc.data.loaders.register(
+  "XHRGet",
+  {
+    load : function(callbacks) {
+      var url = tc.u.get(this.config, "url");
+      var loader = this;
+      if(url == undefined)
+        throw("XHRGet loader needs url, "+this._meta.name);
+      $.ajax(
+        {
+          url : url,
+          data : this.config.data,
+          success : function(data) {
+            if(typeof callbacks.success == "function")
+              callbacks.success(loader.retrieve(data));
+          }
+        }
+      ).fail(function(response) {
+        if(callbacks.error)
+          callbacks.error(response);
+      });
+    }
+  },
+  "Base"
+);
+
+/**
+ * shortcuts
+ */
+
+tc = {
+  u : twentyc.util,
+  def : twentyc.cls.define,
+  ext : twentyc.cls.extend
+}
+
 })();
