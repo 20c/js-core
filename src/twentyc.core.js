@@ -180,6 +180,7 @@ twentyc.cls = {
 
 }
 
+
 /**
  * class registry object - allows you to quickly define and extend
  * similar classes
@@ -217,35 +218,34 @@ twentyc.cls.Registry = twentyc.cls.define(
      * @returns {Function} class ctor of the newly created class
      */
 
-     register : function(name, definition, extend) {
-       if(this._classes[name] != undefined) {
-         throw("Class with name '"+name+"' already exists - name must be unique in the Registry");
-       }
-       if(extend && typeof this._classes[extend] != "function") {
-         throw("Trying to extend from class unknown to this Registry: "+extend);
-       }
-       if(extend)
-         this._classes[name] = twentyc.cls.extend(name, definition, this._classes[extend]);
-       else
-         this._classes[name] = twentyc.cls.define(name, definition);
-       return this._classes[name];
-     },
+    register : function(name, definition, extend) {
+      if(this._classes[name] != undefined) {
+        throw("Class with name '"+name+"' already exists - name must be unique in the Registry");
+      }
+      if(extend && typeof this._classes[extend] != "function") {
+        throw("Trying to extend from class unknown to this Registry: "+extend);
+      }
+      if(extend)
+        this._classes[name] = twentyc.cls.extend(name, definition, this._classes[extend]);
+      else
+        this._classes[name] = twentyc.cls.define(name, definition);
+      return this._classes[name];
+    },
 
-     /**
-      * get a registered class constructor
-      * @method get
-      * @param {String} name class name
-      * @returns {Function} class ctor of registered class
-      */
+    /**
+     * get a registered class constructor
+     * @method get
+     * @param {String} name class name
+     * @returns {Function} class ctor of registered class
+     */
 
-     get : function(name) {
-       if(typeof this._classes[name] != "function") 
-         throw("Trying to retrieve class unknown to this Registry: "+name);
-       return this._classes[name];
-     }
+    get : function(name) {
+      if(typeof this._classes[name] != "function") 
+        throw("Trying to retrieve class unknown to this Registry: "+name);
+      return this._classes[name];
+    }
   }
 );
-
 
 /**
  * utility functions
