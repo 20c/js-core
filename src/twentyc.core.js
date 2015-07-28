@@ -243,6 +243,17 @@ twentyc.cls.Registry = twentyc.cls.define(
       if(typeof this._classes[name] != "function") 
         throw("Trying to retrieve class unknown to this Registry: "+name);
       return this._classes[name];
+    },
+
+    /**
+     * See if a class constructor for the specified name exists
+     * @method has
+     * @param {String} name class name
+     * @returns {Boolean} exists
+     */
+
+    has : function(name) {
+      return (typeof this._classes[name] == "function")
     }
   }
 );
