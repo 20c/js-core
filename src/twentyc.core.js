@@ -282,6 +282,30 @@ twentyc.util = {
     if(!obj || obj[key] == undefined)
       return dflt;
     return obj[key]
+  },
+
+  /**
+   * requires a namespace exist, any keys that do not exist will
+   * be created as object literals
+   *
+   * @method require_namespace
+   * @param {String} namespace "." separated namespace
+   */
+
+  require_namespace : function(namespace) {
+    var tokens = namespace.split("."),
+        i,
+        t,
+        container=window;
+
+    for(i = 0; i < tokens.length; i++) {
+      t = tokens[i];
+      if(typeof container[t] == "undefined") {
+        container[t] = {}
+      }
+      container = container[t];
+    }
+    return container;
   }
 
 }
@@ -514,9 +538,9 @@ twentyc.data.loaders.register(
  * loaders you define. during the ctor you will need to set the url
  * attribute on this.config
  *
- * @class Base
+ * @class XHRGet
  * @module twentyc
- * @namespace twentyc.data.loaders.get
+ * @namespace twentyc.data.loaders._classes
  * @constructor
  * @param {String} id data id
  * @param {Object} [config] object literal holding config attributes
@@ -549,6 +573,93 @@ twentyc.data.loaders.register(
   },
   "Base"
 );
+
+/**
+ * Timeout that will reset itself when invoked again before
+ * execution
+ *
+ * @class SmartTimeout
+ * @namespace twentyc.util
+ * @constructor
+ * @param {Function} callback 
+ * @param {Number} interval trigger in N ms
+ */
+
+twentyc.util.SmartTimeout = twentyc.cls.define(
+  "SmartTimeout",
+  {
+    SmartTimeout : function(callback, interval) {
+      this.set(callback, interval);
+    },
+
+    /**
+     * Reset / start the timeout
+     * @method set
+     * @param {Function} callback 
+     * @param {Number} interval trigger in N ms
+     */
+
+    set : function(callback, interval) {
+      this.cancel();
+      this._timeout = setTimeout(callback, interval);
+    },
+
+    /**
+     * Cancel timeout
+     * @method cancel
+     */
+    
+    cancel : function() {
+      if(this._timeout) {
+        clearTimeout(this._timeout);
+        this._timeout = null;
+      }
+    }
+  }
+);
+
+/**
+ * jQuery helper functions
+ * 
+ * @class jq
+ * @static
+ * @namespace twentyc
+ */
+
+twentyc.jq = {
+  
+  /**
+   * define a jquery plugin
+   *
+   * @method plugin
+   * @param {String} name plugin name as it will be used to access the plugin
+   * on the jquery resultset
+   * @param {Object} definition object literal defining methods of the plugin
+   * @param {Object} config object literal with default plugin config
+   */
+ 
+  plugin : function(name, definition, config) {
+    
+    if(!definition.init) {
+      throw("Plugin definition for jQuery."+name+" missing init method");
+    }
+
+    jQuery.fn[name] = function(arg) {
+      
+      if(definition[arg]) {
+        definition[arg].apply(this, Array.prototype.slice.call(arguments, 1));
+      } else if(typeof arg === "object" || !arg) {
+        var opt = jQuery.extend(config || {}, arg);
+        definition.init.call(this, opt);
+      } else {
+        throw("Method "+arg+" does not exist on jQuery."+name);
+      }
+
+    }
+
+  }
+
+}
 
 /**
  * shortcuts

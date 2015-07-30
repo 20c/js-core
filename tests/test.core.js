@@ -181,6 +181,63 @@ QUnit.test("twentyc.cls.Registry", function(assert) {
 
 });
 
+QUnit.test("twentyc.util.SmartTimeout", function(assert) {
+  var done = assert.async(),
+      n = 0;
+  
+  var callback = function() { 
+    n++;
+  };
+
+  var callbackDone = function() {
+    assert.equal(n, 1);
+    done();
+  };
+
+  var timer = new tc.u.SmartTimeout(callback, 100);
+  timer.set(callback, 50);
+  
+  new tc.u.SmartTimeout(callbackDone, 150);
+
+});
+
+QUnit.test("twentyc.util.require_namespace", function(assert) {  
+  var ns = tc.u.require_namespace("twentyc.test.namespace");
+  ns.a = 1
+  assert.equal(typeof twentyc.test.namespace, "object")
+  assert.equal(twentyc.test.namespace.a, 1);
+});
+
+QUnit.test("twentyc.jq.plugin", function(assert) {
+  
+  var a = 0;
+
+  twentyc.jq.plugin(
+    "testPlugin",
+    {
+      init : function(config) {
+        console.log("INIT", config);
+        assert.equal(config.r, 5);
+        a++;
+      },
+      add : function(n) {
+        a += (n || 5);
+      }
+    },
+    { 
+      r : 5
+    }
+  );
+
+  assert.equal(typeof $.fn.testPlugin, "function");
+  $().testPlugin();
+  assert.equal(a, 1);
+  $().testPlugin("add", 2)
+  assert.equal(a, 3);
+  $().testPlugin("add")
+  assert.equal(a, 8);
+
+});
 QUnit.test("twentyc.data.load", function(assert) {
   
   twentyc.data.loaders.register(
@@ -244,4 +301,6 @@ QUnit.test("twentyc.data.load", function(assert) {
 
 
 });
+
+
 
