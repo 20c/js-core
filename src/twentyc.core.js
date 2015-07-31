@@ -647,10 +647,10 @@ twentyc.jq = {
     jQuery.fn[name] = function(arg) {
       
       if(definition[arg]) {
-        definition[arg].apply(this, Array.prototype.slice.call(arguments, 1));
+        return definition[arg].apply(this, Array.prototype.slice.call(arguments, 1));
       } else if(typeof arg === "object" || !arg) {
         var opt = jQuery.extend(config || {}, arg);
-        definition.init.call(this, opt);
+        return definition.init.call(this, opt);
       } else {
         throw("Method "+arg+" does not exist on jQuery."+name);
       }
