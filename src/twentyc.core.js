@@ -415,7 +415,6 @@ twentyc.data = {
 
     // check if data is currently being loaded
     if(this._loading[id]) {
-      console.log("already loading",id,"skipping additional load")
       return;
     }
 
