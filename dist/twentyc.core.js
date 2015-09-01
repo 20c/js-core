@@ -381,6 +381,44 @@ twentyc.data = {
   },
 
   /**
+   * check if dataset with specified id exists at all
+   *
+   * @method has
+   * @param {String} id data id
+   * @returns {Boolean} has true if dataset exists, false if not
+   */
+ 
+  has : function(id) {
+    return (typeof this._data[id] == "object");
+  },
+
+  /**
+   * store dataset
+   *
+   * @method set
+   * @param {String} id data id 
+   * @param {Object} data data to store
+   */
+
+  set : function(id, data) {
+    this._data[id] = data;
+  },
+
+  /**
+   * update existing dataset with additional data
+   *
+   * @method update
+   * @param {String} id data id
+   * @param {Object} data data to update
+   */
+
+  update : function(id, data) {
+    var existing = this.get(id);
+    $.extend(existing, data);
+    this.set(id, existing);
+  },
+
+  /**
    * retrieve data from server. at this point this expects a json
    * string response, with the actual data keyed at the id you provided
    *
@@ -415,7 +453,6 @@ twentyc.data = {
 
     // check if data is currently being loaded
     if(this._loading[id]) {
-      console.log("already loading",id,"skipping additional load")
       return;
     }
 
@@ -428,7 +465,7 @@ twentyc.data = {
     loader.load(
       {
         success : function(data) {
-          twentyc.data._data[id] = data
+          twentyc.data.set(id, data);
           twentyc.data._loading[id] = false;
           $(twentyc.data).trigger("load", { id:id, data:data} );
           $(twentyc.data).trigger("load-"+id, { id:id, data:data }); 
@@ -463,6 +500,17 @@ twentyc.data.LoaderRegistry = twentyc.cls.extend(
        */
 
       this._loaders = {};
+    },
+
+    /**
+     * check if data id has been assigned loader
+     * @method assigned
+     * @param {String} id data id
+     * @returns {Boolean} assigned true if data id has been assigned loader, false if not
+     */
+
+    assigned : function(id) {
+      return (typeof this._loaders[id] != "undefined")
     },
 
     /**
@@ -647,10 +695,10 @@ twentyc.jq = {
     jQuery.fn[name] = function(arg) {
       
       if(definition[arg]) {
-        definition[arg].apply(this, Array.prototype.slice.call(arguments, 1));
+        return definition[arg].apply(this, Array.prototype.slice.call(arguments, 1));
       } else if(typeof arg === "object" || !arg) {
         var opt = jQuery.extend(config || {}, arg);
-        definition.init.call(this, opt);
+        return definition.init.call(this, opt);
       } else {
         throw("Method "+arg+" does not exist on jQuery."+name);
       }
