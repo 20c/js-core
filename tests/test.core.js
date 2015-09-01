@@ -238,7 +238,26 @@ QUnit.test("twentyc.jq.plugin", function(assert) {
   assert.equal(a, 8);
 
 });
-QUnit.test("twentyc.data.load", function(assert) {
+
+QUnit.test("twentyc.data.update", function(assert) {
+
+  var data = {a : "hello"},
+      id = "update-test",
+      id2 = "update-test-2";
+  
+  twentyc.data.set(id, data);
+  
+  twentyc.data.update(id, {b : "world"});
+
+  assert.equal(twentyc.data.get(id).b, "world");
+
+  twentyc.data.update(id2, {x : "y"});
+
+  assert.equal(twentyc.data.get(id2).x, "y");
+
+});
+
+QUnit.test("twentyc.data.load/has/get", function(assert) {
   
   twentyc.data.loaders.register(
     "Test",
@@ -263,11 +282,14 @@ QUnit.test("twentyc.data.load", function(assert) {
     j++;
   });
 
+  assert.equal(twentyc.data.has("does-not-exist"), false);
+
   twentyc.data.load(
     "test", 
     {
       callback : function(payload) {
         assert.equal(payload.data.a, 123);
+        assert.equal(twentyc.data.has("test"), true);
         n++;
         done();
 
