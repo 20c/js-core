@@ -470,9 +470,24 @@ twentyc.data = {
           $(twentyc.data).trigger("load", { id:id, data:data} );
           $(twentyc.data).trigger("load-"+id, { id:id, data:data }); 
           $(twentyc.data).off("load-"+id);
+          twentyc.data.done();
         }
       }
     );
+  }
+
+  done : function(callback) {
+    var i;
+    if(callback) {
+      $(this).on("done", callback);
+      $(this).on("done", function() { $(twentyc.data).off("done", callback); });
+    }
+    for(i in this._loading) {
+      if(twentyc.data._loading[i]) {
+        return;
+      }
+    }
+    $(this).trigger("done", {});
   }
 
 }
