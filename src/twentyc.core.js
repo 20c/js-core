@@ -474,7 +474,7 @@ twentyc.data = {
         }
       }
     );
-  }
+  },
 
   done : function(callback) {
     var i;
@@ -636,6 +636,131 @@ twentyc.data.loaders.register(
   },
   "Base"
 );
+
+/**
+ * Allows you to dynamically import js libraries
+ * @class libraries
+ * @namespace twentyc
+ */
+
+twentyc.libraries = {
+
+  /**
+   * Holds the current queue, libraries will be loaded
+   * blocking in order
+   * @property queue
+   * @type Array
+   */
+
+  queue : [],
+
+  /**
+   * Holds all libraries required, indexed by their url
+   * @property index
+   * @type Object
+   */
+
+  index : {},
+
+  /**
+   * require a javascript library from the specified url
+   *
+   * @method require
+   * @param {Boolean} test only load if this is false
+   * @param {String} url
+   * @returns self
+   */
+
+  require : function(test, url) {
+    if(!test) {
+      if(!this.index[url]) {
+        var importer = new twentyc.libraries.Importer(url);
+        this.index[url] = importer;
+        this.queue.push(importer);
+        this.load_next();
+      }
+    }
+    return this;
+  },
+
+  /**
+   * load next library in the queue - this is called automatically
+   * @method load_next
+   * @private
+   */
+
+  load_next : function() {
+    if(!this.queue.length)
+      return;
+    var importer = this.queue[0];
+    importer.load(function() {
+      this.queue.shift();
+      this.load_next();
+    }.bind(this));
+  }
+
+}
+
+/**
+ * Describes a requirement importer
+ * @class Importer
+ * @namespace twentyc.libraries
+ * @constructor
+ * @param {String} url
+ */
+
+twentyc.libraries.Importer = twentyc.cls.define(
+  "Importer",
+  {
+    Importer : function(url) {
+
+      /**
+       * Location of the library to be loaded
+       * @type String
+       */
+      this.url = url;
+
+      /**
+       * Describes the current state of the importer
+       * Can be
+       *
+       * - "waiting" : waiting to be loaded
+       * - "loading" : currently loading
+       * - "loaded" : loading complete
+       *
+       * @type String
+       */
+      this.status = "waiting";
+    },
+
+    /**
+     * Load the library
+     * @method load
+     * @param {Function} onload
+     * @param {DOM} container - where to insert the script element, will default to `document.head`
+     */
+    load : function(onload, container) {
+      if(this.status != "waiting")
+        return;
+      if(!container)
+        container = document.head;
+
+      var script = document.createElement("script")
+      script.onload = function() {
+        this.status = "loaded";
+        if(onload)
+          onload();
+      }.bind(this);
+      script.type = "text/javascript";
+      script.src = this.url;
+
+      this.status = "loading";
+
+      container.appendChild(script)
+      return script;
+    }
+  }
+)
 
 /**
  * Timeout that will reset itself when invoked again before
