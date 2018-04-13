@@ -40,7 +40,7 @@ twentyc.cls = {
 
   /**
    * create a new class - if you wish to extend a class take a look at
-   * {{#crossLink "cls/extend:method"}}twentyc.cls.extend{{/crossLink}} 
+   * {{#crossLink "cls/extend:method"}}twentyc.cls.extend{{/crossLink}}
    * instead
    *
    * you may define a constructor in the definition by using the class
@@ -58,13 +58,13 @@ twentyc.cls = {
    * @param {Object} definition object literal of properties and functions that you wish define or redefine
    * @returns {Function} dest constructor of new class
    */
-  
+
   define : function(name, definition) {
 
     var k;
 
     name = twentyc.cls.make_name(name);
-    
+
     if(typeof(definition[name]) == "function") {
       // a constructor has been provided
       var ctor = definition[name]
@@ -87,7 +87,7 @@ twentyc.cls = {
     return ctor
 
   },
-  
+
   /**
    * extend an existing class with new properties and functions
    *
@@ -102,23 +102,23 @@ twentyc.cls = {
    * it will be passed through twentyc.cls.make_name to make it valid
    *
    * ##examples
-   * 
+   *
    * * extend and instantiate a class: examples/cls.extend.js
    * * handling method override: examples/cls.extend.method-override.js
    *
    * @method extend
    * @param {String} name name or unqiue identifier of the new class
    * @param {Object} definition object literal of properties and functions that you wish define or redefine
-   * @param {Function} [parent] constructor of class 
+   * @param {Function} [parent] constructor of class
    * that you wish to extend, if omitted an empty function will be substituted
    * @returns {Function} dest constructor of new class
    */
 
   extend : function(name, definition, parent) {
-    
+
     var k;
     name = twentyc.cls.make_name(name);
-    
+
     if(typeof(definition[name]) == "function") {
       // a constructor has been provided
       var ctor = definition[name]
@@ -143,7 +143,7 @@ twentyc.cls = {
       }
       ctor.prototype[k] = definition[k]
     }
-    
+
     // reference parent constructor
     ctor.prototype[parent.prototype._meta.name] = parent
 
@@ -168,11 +168,11 @@ twentyc.cls = {
    */
 
   override : function(destClass, methodName, method) {
-    
+
     // create reference to old method
     if(destClass.prototype[methodName])
       destClass.prototype[destClass.prototype._meta.name+"_"+methodName] = destClass.prototype[methodName];
-    
+
     // override
     destClass.prototype[methodName] = method;
 
@@ -194,9 +194,9 @@ twentyc.cls = {
 twentyc.cls.Registry = twentyc.cls.define(
   "Registry",
   {
-    
+
     Registry : function() {
-      
+
       /**
        * holds the classes defined in this registry
        * @property _classes
@@ -240,7 +240,7 @@ twentyc.cls.Registry = twentyc.cls.define(
      */
 
     get : function(name) {
-      if(typeof this._classes[name] != "function") 
+      if(typeof this._classes[name] != "function")
         throw("Trying to retrieve class unknown to this Registry: "+name);
       return this._classes[name];
     },
@@ -266,13 +266,13 @@ twentyc.cls.Registry = twentyc.cls.define(
  */
 
 twentyc.util = {
-  
+
   /**
    * retrieve value from object literal - allows you to pass null or undefined
    * as the object and will return null if you do
    *
    * @method get
-   * @param {Object} obj 
+   * @param {Object} obj
    * @param {String) key
    * @param {Mixed} [default] return this if obj is null or key does not exist
    * @returns {Mixed} value
@@ -314,7 +314,7 @@ twentyc.util = {
  * data retrieval, storage and management
  *
  * assures that data is only retrieved once even when multiple sources
- * are requesting it. 
+ * are requesting it.
  *
  * data is cached locally for quick retrieval afterwards
  *
@@ -347,7 +347,7 @@ twentyc.data = {
    */
 
   /**
-   * keeps track of current loading status 
+   * keeps track of current loading status
    * @property _loading
    * @type Object
    * @private
@@ -365,7 +365,7 @@ twentyc.data = {
   _data : {},
 
   /**
-   * attempts to retrieve and return a data set 
+   * attempts to retrieve and return a data set
    *
    * ##example(s)
    *
@@ -387,7 +387,7 @@ twentyc.data = {
    * @param {String} id data id
    * @returns {Boolean} has true if dataset exists, false if not
    */
- 
+
   has : function(id) {
     return (typeof this._data[id] == "object");
   },
@@ -396,7 +396,7 @@ twentyc.data = {
    * store dataset
    *
    * @method set
-   * @param {String} id data id 
+   * @param {String} id data id
    * @param {Object} data data to store
    */
 
@@ -434,7 +434,7 @@ twentyc.data = {
    */
 
   load : function(id, config) {
-    
+
     var callback = tc.u.get(config, "callback");
 
     // check if data is already loaded
@@ -448,7 +448,7 @@ twentyc.data = {
 
     // attach callback to load event
     if(callback) {
-      $(this).on("load-"+id, function(ev, payload) { callback(payload) }); 
+      $(this).on("load-"+id, function(ev, payload) { callback(payload) });
     }
 
     // check if data is currently being loaded
@@ -468,7 +468,7 @@ twentyc.data = {
           twentyc.data.set(id, data);
           twentyc.data._loading[id] = false;
           $(twentyc.data).trigger("load", { id:id, data:data} );
-          $(twentyc.data).trigger("load-"+id, { id:id, data:data }); 
+          $(twentyc.data).trigger("load-"+id, { id:id, data:data });
           $(twentyc.data).off("load-"+id);
           twentyc.data.done();
         }
@@ -534,12 +534,12 @@ twentyc.data.LoaderRegistry = twentyc.cls.extend(
      * @param {String} id data id
      * @param {String} loaderName name that you registered the loader under
      */
-    
+
     assign : function(id, loaderName) {
-      
+
       // this will error if loaderName is not registered
       var loader = this.get(loaderName);
-      
+
       // link loader
       this._loaders[id] = loaderName;
 
@@ -608,7 +608,7 @@ twentyc.data.loaders.register(
  * @param {String} id data id
  * @param {Object} [config] object literal holding config attributes
  * @param {String} [config.url] url of the request
- * @param {Object} [config.data] parameters to send 
+ * @param {Object} [config.data] parameters to send
  */
 
 twentyc.data.loaders.register(
@@ -644,7 +644,7 @@ twentyc.data.loaders.register(
  * @class SmartTimeout
  * @namespace twentyc.util
  * @constructor
- * @param {Function} callback 
+ * @param {Function} callback
  * @param {Number} interval trigger in N ms
  */
 
@@ -658,7 +658,7 @@ twentyc.util.SmartTimeout = twentyc.cls.define(
     /**
      * Reset / start the timeout
      * @method set
-     * @param {Function} callback 
+     * @param {Function} callback
      * @param {Number} interval trigger in N ms
      */
 
@@ -671,7 +671,7 @@ twentyc.util.SmartTimeout = twentyc.cls.define(
      * Cancel timeout
      * @method cancel
      */
-    
+
     cancel : function() {
       if(this._timeout) {
         clearTimeout(this._timeout);
@@ -683,14 +683,14 @@ twentyc.util.SmartTimeout = twentyc.cls.define(
 
 /**
  * jQuery helper functions
- * 
+ *
  * @class jq
  * @static
  * @namespace twentyc
  */
 
 twentyc.jq = {
-  
+
   /**
    * define a jquery plugin
    *
@@ -700,15 +700,15 @@ twentyc.jq = {
    * @param {Object} definition object literal defining methods of the plugin
    * @param {Object} config object literal with default plugin config
    */
- 
+
   plugin : function(name, definition, config) {
-    
+
     if(!definition.init) {
       throw("Plugin definition for jQuery."+name+" missing init method");
     }
 
     jQuery.fn[name] = function(arg) {
-      
+
       if(definition[arg]) {
         return definition[arg].apply(this, Array.prototype.slice.call(arguments, 1));
       } else if(typeof arg === "object" || !arg) {
