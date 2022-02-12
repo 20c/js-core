@@ -1,2 +1,9 @@
 *.swp
 *.swo
+
+# builds of documenttaion files, sphinx files
+/docs/build
+/docs/make.bat
+/docs/Makefile
+/docs/source/conf.py
+/docs/source/index.rst
