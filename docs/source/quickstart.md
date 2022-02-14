@@ -1,6 +1,6 @@
 # Quick start guide
 
-## Adding 20C JavaScript core to a project
+## Adding 20C JavaScript Core to a project
 
 - 20C JavaScript core requires jQuery 3
 
