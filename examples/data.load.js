@@ -1,5 +1,5 @@
 /**
- * examples: data loading and storage 
+ * examples: data loading and storage
  */
 
 // first we define our loader
@@ -10,14 +10,15 @@ twentyc.data.loaders.register(
   "ExampleLoader",
   {
     ExampleLoader : function(id, config) {
-      
+
       // during the ctor we make sure to set the url attribute
       config.url = "data.load.example.json"
-      
+
       // then make sure to call the parent ctor
       this.XHRGet(id, config);
     }
-  }
+  },
+  "XHRGet"
 );
 
 // then we need to assign our loader to a data id
@@ -42,7 +43,7 @@ twentyc.data.load("example", {
 });
 
 // in order to force a data re-load pass the reload
-// attribute 
+// attribute
 twentyc.data.load("example", {
   reload : true,
   callback : function(payload) {
@@ -52,5 +53,5 @@ twentyc.data.load("example", {
 });
 
 // you may access data that has been loaded at anytime
-// using get 
+// using get
 twentyc.data.get("example"); // { "something" : "here" }
