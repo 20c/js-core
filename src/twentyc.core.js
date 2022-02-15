@@ -460,6 +460,7 @@ twentyc.data = {
 
     // in order to load data we need to find a suitable loader for it
 
+
     var loader = this.loaders.loader(id, config);
     this._loading[id] = new Date().getTime()
     loader.load(
@@ -467,16 +468,15 @@ twentyc.data = {
         success : function(data) {
           twentyc.data.set(id, data);
           twentyc.data._loading[id] = false;
-          $(twentyc.data).trigger("load", { id:id, data:data} );
           $(twentyc.data).trigger("load-"+id, { id:id, data:data });
           $(twentyc.data).off("load-"+id);
-          twentyc.data.done();
+          twentyc.data.loading_done();
         }
       }
     );
   },
 
-  done : function(callback) {
+  loading_done : function(callback) {
     var i;
     if(callback) {
       $(this).on("done", callback);
