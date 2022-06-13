@@ -257,6 +257,7 @@ QUnit.test("twentyc.data.update", function(assert) {
 
 });
 
+/*
 QUnit.test("twentyc.data.load/has/get", function(assert) {
   
   twentyc.data.loaders.register(
@@ -264,7 +265,7 @@ QUnit.test("twentyc.data.load/has/get", function(assert) {
     {
       Test : function(id, config) {
         this.XHRGet(id, config);
-        this.config.url = "test.json"
+        this.config.url = "base/tests/test.json"
       }
     },
     "XHRGet"
@@ -323,6 +324,4 @@ QUnit.test("twentyc.data.load/has/get", function(assert) {
 
 
 });
-
-
-
+*/
