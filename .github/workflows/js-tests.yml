@@ -5,6 +5,18 @@ on: [push, pull_request]
 
 # Job Setup
 jobs:
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+    - name: Run ESLint
+      run: |
+        npm install
+        npm run linting
+
   test:
     runs-on: ubuntu-latest
     steps:
