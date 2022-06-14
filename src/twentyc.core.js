@@ -1,3 +1,4 @@
+/* global $, jQuery, twentyc */
 (function() {
 
 /**
@@ -5,7 +6,7 @@
  * @module twentyc
  */
 
-twentyc = {};
+window.twentyc = {};
 
 /**
  * class helper functions
@@ -65,14 +66,13 @@ twentyc.cls = {
 
     name = twentyc.cls.make_name(name);
 
+    // no constructor provided
+    var ctor = function(){};
     if(typeof(definition[name]) == "function") {
       // a constructor has been provided
-      var ctor = definition[name]
+      ctor = definition[name]
       delete definition[name]
-    } else {
-      // no constructor provided, substitute empty constructor
-      var ctor = function(){};
-    }
+    } 
 
     // cycle through definition and copy to class prototype
     for(k in definition) {
@@ -119,15 +119,14 @@ twentyc.cls = {
     var k;
     name = twentyc.cls.make_name(name);
 
+    // no constructor provided, substitute empty constructor
+    var ctor = function(){
+      parent.apply(this, arguments)
+    };
     if(typeof(definition[name]) == "function") {
       // a constructor has been provided
-      var ctor = definition[name]
+      ctor = definition[name]
       delete definition[name]
-    } else {
-      // no constructor provided, substitute empty constructor
-      var ctor = function(){
-        parent.apply(this, arguments)
-      };
     }
 
     // cycle through parent prototype and copy to class prototype
@@ -538,10 +537,8 @@ twentyc.data.LoaderRegistry = twentyc.cls.extend(
     assign : function(id, loaderName) {
 
       // this will error if loaderName is not registered
-      var loader = this.get(loaderName);
-
-      // link loader
-      this._loaders[id] = loaderName;
+      if (this.get(loaderName))
+        this._loaders[id] = loaderName; //link loader
 
     },
 
@@ -585,7 +582,7 @@ twentyc.data.loaders.register(
     },
     retrieve : function(data) {
       var set = tc.u.get(data, this.dataId)
-      if(typeof set == undefined)
+      if(typeof set == "undefined")
         return {};
       return set;
     },
@@ -853,7 +850,8 @@ twentyc.jq = {
  * shortcuts
  */
 
-tc = {
+/* global tc */
+window.tc = {
   u : twentyc.util,
   def : twentyc.cls.define,
   ext : twentyc.cls.extend
