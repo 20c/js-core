@@ -304,19 +304,19 @@ QUnit.test("twentyc.data.load/has/get", function(assert) {
         assert.equal(payload.data.a, 123);
         n++;
         done2();
-      }
-    }
-  );
-  var done3 = assert.async();
+        //var done3 = assert.async();
 
-  twentyc.data.load(
-    "test", 
-    {
-      reload : true,
-      callback : function() {
-        assert.equal(n, 2);
-        //assert.equal(j, 2); // TODO : Fix
-        done3();
+        twentyc.data.load(
+          "test", 
+          {
+            reload : true,
+            callback : function() {
+              assert.equal(n, 2);
+              assert.equal(j, 2);
+              //done3();
+            }
+          }
+        );
       }
     }
   );
